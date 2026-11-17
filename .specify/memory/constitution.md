@@ -1,28 +1,28 @@
 # Mitigasi Sampah — Project Constitution
 
 ## 1. Preserve the calculation contract
-The current workbook is the baseline for calculation behavior. Preserve every existing formula, factor, assumption, unit, boundary, and rounding rule unless the project owner explicitly approves a change. Record suspected errors separately with reproducible evidence.
+The source workbook and current formulas define the calculation baseline. Preserve formulas, factors, assumptions, units, boundaries, and rounding unless the owner explicitly approves a change. Record suspected defects separately with reproducible evidence.
 
 ## 2. Privacy by design
-The web application is public; its Google Sheets datastore is private. Anonymous users may submit calculations but must not be able to read, enumerate, or infer other submissions. Never commit credentials, private spreadsheet IDs, personal data, or operational records.
+The public app does not store submissions centrally. Never commit credentials, secrets, personal data, or private operational records. The source workbook may be public only by owner intent.
 
-## 3. Server-side authority
-The server owns validation, calculation execution, persistence, and report data. Browser-side validation exists only to improve usability. Never trust client-supplied calculated totals or identifiers.
+## 3. Calculation authority
+The Python calculation module is the sole runtime calculation implementation. The browser/UI must not supply calculated totals. Keep calculation logic independent of Streamlit presentation.
 
-## 4. Isolated and reliable submissions
-Each accepted submission receives a unique reference ID. Store submission-level metadata separately from calculation-detail rows, linked by that ID. Use concurrency control and idempotency/duplicate protection appropriate to the final design. A failed write must not be reported as a successful submission.
+## 4. No central submission storage
+The MVP has no user accounts, database, submission history, or central persistence. Users download their own result.
 
 ## 5. Simplicity over machinery
-Prefer the smallest design that meets the approved requirements. Avoid unnecessary frameworks, dependencies, layers, abstractions, and features. Add complexity only to address a demonstrated requirement or risk.
+Prefer the smallest design that meets approved requirements. Avoid unnecessary frameworks, dependencies, layers, abstractions, and features.
 
 ## 6. Accessibility and usability
-The public interface must be usable on common mobile and desktop browsers, communicate validation and failure clearly, and avoid requiring a Google account for end users.
+The public interface should work on common mobile and desktop browsers, explain inputs and units, and communicate validation clearly.
 
-## 7. Specification before implementation
-Every material feature must have documented user behavior, constraints, and testable acceptance criteria before implementation. Keep specification, plan, tasks, and tests aligned.
+## 7. Specification before material changes
+Keep specification, plan, tasks, and acceptance criteria aligned with the implemented product direction.
 
 ## 8. Evidence-based completion
-Inspect before changing. Test behavior, inspect failures, and iterate within a sensible retry budget. Report what changed, what was tested, what passed, and what remains unverified. Never imply deployment or production readiness without evidence.
+Inspect before changing. Test behavior, inspect failures, and report exact evidence. Never imply deployment or production readiness without verification.
 
 ## 9. Owner approval for consequential changes
-The project owner controls methodology and deployment. Obtain explicit approval before changing calculation methodology, exposing source data, changing access boundaries, or deploying to a live production environment.
+Obtain explicit approval before changing calculation methodology or deploying to a live production environment.
