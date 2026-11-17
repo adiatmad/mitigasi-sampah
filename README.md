@@ -1,77 +1,41 @@
-# Mitigasi Sampah
+# Kalkulator Mitigasi Sampah
 
-A public-facing carbon calculator for waste-management scenarios, built with Google Apps Script and a private Google Sheets data store.
+A public Streamlit application that ports the current calculation behavior of `Skenario Mitigasi Limbah.xlsx` into Python. Users enter a population total and can download their own result as JSON. No login, database, central submission storage, or submission history.
 
-> **Project status: preparation only.** The existing workbook and calculation logic have not yet been audited. No production calculations or deployment configuration are implemented in this repository.
+## Run locally
 
-## Product direction
-
-- Public web application; end users do not need a Google account.
-- Private, centrally managed Google Sheets database.
-- Separate sheets for submission records and calculation-detail records.
-- Results displayed to the submitting user after a successful submission.
-- Downloadable report and unique submission reference ID.
-- Existing formulas, emission factors, assumptions, and methodology must be preserved. Potential issues are documented separately and require owner approval before any methodological change.
-
-## Repository layout
-
-```text
-.specify/
-  memory/constitution.md
-specs/
-  001-public-carbon-calculator/
-    spec.md
-    plan.md
-    tasks.md
-    checklists/requirements.md
-src/
-  Code.gs
-  Index.html
-  Styles.html
-  appsscript.json
-tests/
-  README.md
-.claspignore
-.clasp.json.example
-.gitignore
-AGENTS.md
-LICENSE
-README.md
+```bash
+python -m venv .venv
+# Windows: .venv\\Scripts\\activate
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+streamlit run app.py
 ```
 
-## Source of truth and data safety
+## Deploy on Streamlit Community Cloud
 
-- This repository is the source of truth for application code and project specifications.
-- The operational Google Spreadsheet must remain private. Do not commit its ID, credentials, access tokens, or private user submissions.
-- **Do not upload the original Excel workbook to this public repository yet.** A public repository makes uploaded files publicly accessible, and the repository's GPL-3.0-or-later license applies to the project's covered source and documentation. First confirm that the workbook contains no personal data, confidential records, restricted third-party material, or content you do not intend to publish. Prefer sharing the workbook through a private channel for the initial audit.
-- Never place real `.clasp.json` files or secrets in Git. Use `.clasp.json.example` as a template only.
+1. Push/merge the reviewed code to a GitHub branch.
+2. Sign in to Streamlit Community Cloud and choose **Create app**.
+3. Select this repository and branch; set the main file path to `app.py`.
+4. Deploy. No secrets or database configuration are required.
 
-## Development status
+## Calculation fidelity
 
-The initial repository scaffold is documentation and empty application placeholders only. Implementation starts after the source workbook has been reviewed and the specification and acceptance criteria have been approved.
+- `calculator.py` mirrors the workbook's current formulas and fixed assumptions.
+- The app asks for total population because the workbook only uses the sum of its six RW population cells; their distribution does not affect results.
+- Composition percentages, 30% out-migration, 0.19 tonnes/person/year, scenario allocations, emission factors, and GWP values remain fixed as in the workbook.
+- The saved Kaliwlingi example (population 10,539) is the known-answer regression case in `tests/test_calculator.py`.
+- Suspected methodology issues are disclosed separately; they are not silently corrected.
 
-Planned implementation sequence:
+## Important limitation
 
-1. Audit the workbook structure, formulas, named ranges, and dependencies.
-2. Record the existing calculation behavior as characterization cases.
-3. Finalize the feature specification, technical plan, and acceptance criteria.
-4. Implement the smallest maintainable Apps Script web application.
-5. Verify calculation parity, validation, concurrent submissions, privacy boundaries, and report generation.
-6. Deploy only after the owner has reviewed and approved the release.
+This is a calculation port, not an independent validation of the workbook's methodology or sources. The mitigation scenario is fixed; users cannot design arbitrary waste-management mixes. Bank sampah 3R, biodigester, and pyrolysis allocations do not receive modeled avoided-emission credits in the current workbook. Do not present the result as measured or guaranteed real-world reduction.
 
-## Google Apps Script setup
+## Tests
 
-The Apps Script project source is in `src/`. When configuring `clasp`, use that directory as the project root and keep the real `.clasp.json` local and untracked.
+```bash
+pip install pytest
+pytest -q
+```
 
-1. Install and authenticate the Google clasp CLI.
-2. Copy `.clasp.json.example` to `.clasp.json`.
-3. Replace the placeholder script ID with the Apps Script project ID you control.
-4. From the repository root, run `clasp push` only after reviewing the files and confirming the target project.
-
-No script ID, spreadsheet ID, or deployment URL is included in this repository.
-
-## License
-
-The GPL is a copyleft free-software license: recipients may use, study, modify, and redistribute covered works, including commercially, provided they follow its terms and preserve the same freedoms in redistributed derivative works. The license does not automatically cover third-party materials, trademarks, personal data, or content the project owner does not have rights to license.
-
-The application source and original project documentation are licensed under **GNU General Public License v3.0 or later (GPL-3.0-or-later)**. See [LICENSE](LICENSE). This does not grant rights to third-party material, trademarks, personal data, or content that the project owner does not own or have permission to publish.
+The original workbook is the calculation source of truth but is not required at runtime.
