@@ -1,23 +1,26 @@
-# Google Apps Script credentials and local configuration
+# Local configuration and secrets
 .clasp.json
 .clasprc.json
 .clasprc
 .env
 .env.*
-
-# Dependencies and generated output
+.streamlit/secrets.toml
+# Python
+__pycache__/
+.pytest_cache/
+.venv/
+*.py[cod]
+# Generated output
 node_modules/
 dist/
 coverage/
 .tmp/
 *.log
-
-# Local workbook and data exports (do not commit source datasets by default)
+# Source data and exports
 *.xlsx
 *.xls
 *.xlsm
 *.csv
-
 # OS/editor files
 .DS_Store
 Thumbs.db
