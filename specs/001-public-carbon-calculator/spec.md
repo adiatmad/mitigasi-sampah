@@ -1,67 +1,42 @@
-# Feature Specification: Public Carbon Calculator
+# Feature Specification: Public Waste-Management Carbon Calculator
 
-**Status:** Draft — pending source workbook audit and owner approval  
-**Feature branch:** `001-public-carbon-calculator`
+**Status:** MVP implemented on `feat/streamlit-carbon-calculator`; workbook parity characterized for its saved Kaliwlingi example. Methodology review remains open.
 
-## User problem
-A user needs to calculate a waste-management carbon result through a simple public web interface without accessing the underlying spreadsheet or requiring a Google account.
-
-## Product decisions already confirmed
-- Public web application replaces the existing spreadsheet UI.
-- End users do not need Google accounts.
-- The Google Sheets datastore remains private.
-- Submission records and calculation-detail records are stored separately.
-- Results are displayed after a successful submission.
-- The user receives a downloadable report and unique submission reference ID.
-- Existing formulas and assumptions are preserved; concerns are documented separately.
+## Confirmed product decisions
+- Public-facing Streamlit application; no end-user login.
+- No database, central submission storage, or submission history.
+- Users can download their own calculation result.
+- Workbook formulas, constants, assumptions, units, boundaries, and current behavior are preserved until owner approval changes them.
 
 ## In scope
-- Public input interface based on the existing workbook's actual input model.
-- Server-side validation and calculation execution.
-- Private central persistence.
-- Separate submission and calculation-detail records linked by a unique reference ID.
-- Per-submission result response.
-- Downloadable report.
-- Clear validation, processing, and failure states.
+- Enter total population (equivalent to the sum of the workbook's six RW population cells).
+- Calculate the workbook's baseline and fixed mitigation scenarios.
+- Display annual emissions, reduction, waste composition, and scenario allocations.
+- Download result data as JSON.
+- Show workbook-derived assumptions, source references, and limitations.
 
-## Out of scope unless separately approved
-- User accounts or authentication for end users.
-- Public browsing of submissions or a public results dashboard.
-- Email delivery, payment, multi-tenant administration, or analytics dashboards.
-- Changes to carbon methodology or emission factors.
-- Production deployment before owner approval.
+## Out of scope
+- Arbitrary user-defined waste allocation scenarios.
+- Accounts, database, central persistence, submission IDs, or public result browsing.
+- Independent recalibration of emission factors or methodology.
+- Regulatory certification or measured-emissions claims.
 
 ## Functional requirements
-Requirements below are intentionally provisional where workbook behavior is not yet known.
-
-- **FR-001:** The application MUST allow an end user to complete the approved calculator input flow without signing in to Google.
-- **FR-002:** The server MUST validate all submitted values against rules derived from the audited workbook and approved specification.
-- **FR-003:** The application MUST preserve existing calculation formulas and assumptions.
-- **FR-004:** The server MUST calculate results; it MUST NOT trust client-supplied totals.
-- **FR-005:** Each accepted submission MUST receive a unique, non-guessable reference identifier.
-- **FR-006:** Submission metadata MUST be stored separately from calculation-detail rows and linked by the reference identifier.
-- **FR-007:** A successful submission MUST return only that submission's result and reference identifier.
-- **FR-008:** The user MUST be able to download a report for their completed submission.
-- **FR-009:** The application MUST prevent public users from reading or enumerating other submissions.
-- **FR-010:** Concurrent submissions MUST NOT overwrite or mix one another's data.
-- **FR-011:** Failed persistence MUST be communicated as failure, not success.
-- **FR-012:** The interface MUST provide understandable validation and error feedback.
-
-## Open questions — resolve after workbook audit
-- Exact input fields, steps, labels, units, ranges, defaults, and required/optional status.
-- Exact formulas, intermediate values, output metrics, and rounding behavior.
-- Submission metadata fields and detail-row schema.
-- Report format and exact report contents.
-- Retention, deletion, and operational access policy.
-- Abuse controls and any deployment quotas or constraints.
-- Whether any personal information is genuinely necessary.
+- **FR-001:** Accept non-negative population and reject malformed values.
+- **FR-002:** Reproduce workbook formulas and fixed assumptions, including current inconsistencies, until explicitly approved otherwise.
+- **FR-003:** Calculate server-side; do not accept client-supplied totals.
+- **FR-004:** Display baseline, mitigation, and estimated reduction in tCO2e.
+- **FR-005:** Show waste allocations and composition values used.
+- **FR-006:** Allow downloading calculation details without storing submissions centrally.
+- **FR-007:** Disclose that results are estimates from a fixed workbook scenario, not measured emissions.
+- **FR-008:** Distinguish references transcribed from the workbook from independently validated sources.
 
 ## Acceptance criteria
-The final, testable acceptance criteria will be completed after the workbook audit. At minimum, release requires:
-- Characterization tests demonstrating parity with approved workbook cases.
-- Invalid and boundary input tests.
-- Isolation tests showing one submission cannot overwrite or retrieve another.
-- Concurrent-write and duplicate-request tests.
-- Report content and download tests.
-- Privacy review confirming the spreadsheet and credentials are not exposed.
-- Owner approval of the final specification and deployment configuration.
+- [x] Population 10,539 reproduces workbook cached outputs: baseline 1,581.1719697799867 tCO2e; mitigation 344.99200703436014 tCO2e; reduction 1,236.1799627456267 tCO2e (floating-point tolerance).
+- [x] Zero population produces zero emissions.
+- [x] Negative, boolean, non-numeric, infinite, and NaN inputs are rejected by calculation function.
+- [x] Baseline and mitigation waste allocations each sum to total annual waste.
+- [x] No database, authentication, or server-side submission persistence.
+- [x] JSON download includes results, model version, references, and limitations.
+- [ ] Streamlit Cloud deployment and live-browser smoke test (owner action).
+- [ ] Independent methodology/source validation (separate review; no behavior change without approval).
