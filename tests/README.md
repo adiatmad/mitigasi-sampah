@@ -1,14 +1,11 @@
 # Tests
 
-No calculation or application tests are defined yet because the source workbook has not been audited.
+Run deterministic calculation-model tests with Node.js:
 
-After the audit, add tests that characterize existing workbook behavior before refactoring. Prioritize:
+```sh
+node --test tests/calculator.test.js
+```
 
-- Calculation parity against workbook-known inputs and outputs.
-- Server-side validation, including missing, malformed, and boundary values.
-- Submission/detail relationship and unique reference IDs.
-- Duplicate and concurrent submission handling.
-- Isolation: a user receives only their own result.
-- Report content and download behavior.
+The suite checks population adjustment, annual waste, landfill emissions, composting emissions, open-burning ratio, unmodeled bank-sampah/pyrolysis behavior, and negative reduction cases.
 
-Do not create guessed fixtures or expected carbon values. Derive fixtures from the audited workbook and have the project owner approve them.
+These tests exercise the pure calculation module only. They do not simulate Apps Script services, spreadsheet permissions, deployment identity, persistence rollback, or concurrent Google Sheets writes. Those checks must be run in a test Apps Script project.
