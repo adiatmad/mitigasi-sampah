@@ -1,0 +1,12 @@
+# Keep repository documentation and tests out of the Apps Script project
+README.md
+AGENTS.md
+LICENSE
+.gitignore
+.claspignore
+.clasp.json.example
+.specify/**
+specs/**
+tests/**
+node_modules/**
+.git/**
