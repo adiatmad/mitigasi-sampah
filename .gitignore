@@ -1,0 +1,25 @@
+# Google Apps Script credentials and local configuration
+.clasp.json
+.clasprc.json
+.clasprc
+.env
+.env.*
+
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+.tmp/
+*.log
+
+# Local workbook and data exports (do not commit source datasets by default)
+*.xlsx
+*.xls
+*.xlsm
+*.csv
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
