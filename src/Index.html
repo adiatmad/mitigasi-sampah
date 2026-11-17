@@ -1,16 +1,124 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Copyright (C) 2026 adiatmad -->
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <?!= include('Styles'); ?>
-  </head>
-  <body>
-    <main class="app">
-      <h1>Mitigasi Sampah</h1>
-      <p>Calculator interface will be implemented after the source workbook audit.</p>
-    </main>
-  </body>
-</html>
+<html lang="id">
+<head><base target="_top"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><?!= include('Styles'); ?></head>
+<body>
+<header class="topbar"><div class="shell topbar-inner"><div class="brand-mark">MS</div><div><div class="eyebrow">PERENCANAAN PENGELOLAAN SAMPAH</div><div class="brand-name">Kalkulator Mitigasi Sampah</div></div><a class="top-link" href="#references">Metode & referensi</a></div></header>
+<main class="shell page">
+  <section class="intro"><p class="eyebrow">ESTIMASI EMISI GAS RUMAH KACA</p><h1>Bandingkan kondisi saat ini dengan skenario mitigasi.</h1><p class="lead">Masukkan data penduduk dan alokasi pengelolaan sampah. Perhitungan dilakukan di server; hasil dan dasar parameternya dapat diunduh sebagai laporan.</p></section>
+  <div id="setupNotice" class="notice" hidden><strong>Pengaturan awal diperlukan.</strong> Administrator perlu menjalankan <code>setupDataStore()</code> satu kali dari editor Apps Script sebelum pengiriman dapat disimpan.</div>
+  <section class="layout">
+    <form id="calculatorForm" class="panel form-panel" novalidate>
+      <div class="panel-heading"><div><p class="eyebrow">FORMULIR PERHITUNGAN</p><h2>Data wilayah dan skenario</h2></div><span class="step-indicator">4 bagian</span></div>
+      <section class="form-section"><div class="section-title"><span>01</span><div><h3>Identitas wilayah</h3><p>Nama lokasi perhitungan.</p></div></div><div class="field-grid three">
+        <label>Desa / kelurahan<input name="village" maxlength="100" required placeholder="Nama desa"></label>
+        <label>Kecamatan<input name="subdistrict" maxlength="100" required placeholder="Nama kecamatan"></label>
+        <label>Kabupaten / kota<input name="regency" maxlength="100" required placeholder="Nama kabupaten"></label>
+      </div></section>
+      <section class="form-section"><div class="section-title"><span>02</span><div><h3>Jumlah penduduk</h3><p>Isi jumlah penduduk pada setiap RW yang tercakup.</p></div></div><div class="field-grid three">
+        <label>RW 01<input name="rw1" type="number" min="0" step="1" value="0" required></label><label>RW 02<input name="rw2" type="number" min="0" step="1" value="0" required></label>
+        <label>RW 03<input name="rw3" type="number" min="0" step="1" value="0" required></label><label>RW 04<input name="rw4" type="number" min="0" step="1" value="0" required></label>
+        <label>RW 05<input name="rw5" type="number" min="0" step="1" value="0" required></label><label>RW 06<input name="rw6" type="number" min="0" step="1" value="0" required></label>
+      </div><p class="assumption-line">Model mengurangi 30% dari populasi tercatat untuk memperkirakan penduduk efektif. Asumsi ini perlu validasi.</p></section>
+      <section class="form-section"><div class="section-title"><span>03</span><div><h3>Timbulan dan baseline</h3><p>Kondisi pengelolaan sebelum intervensi.</p></div></div>
+        <label class="field-wide">Laju timbulan sampah<div class="input-unit"><input name="wasteGenerationRate" type="number" min="0.000001" step="0.01" value="0.19" required><span>ton/kapita/tahun</span></div><small>Nilai awal 0,19 dari rujukan BPS (2006) pada skrip sumber.</small></label>
+        <div class="field-grid two"><label>Pembakaran terbuka<input name="baselineOpenBurningTonnes" type="number" min="0" step="0.01" value="0" required><small>ton/tahun</small></label><label>Pembuangan ke TPA / tidak terkelola<input name="baselineLandfillTonnes" type="number" min="0" step="0.01" value="0" required><small>ton/tahun</small></label></div>
+      </section>
+      <section class="form-section"><div class="section-title"><span>04</span><div><h3>Target mitigasi</h3><p>Alokasi pengelolaan setelah intervensi.</p></div></div>
+        <div class="field-grid two"><label>Pengomposan / TPS3R<input name="mitigationCompostTonnes" type="number" min="0" step="0.01" value="0" required><small>ton/tahun · dihitung dalam emisi model</small></label>
+          <label>Bank sampah 3R<input name="mitigationBankSampahTonnes" type="number" min="0" step="0.01" value="0" required><small>ton/tahun · emisi belum dimodelkan</small></label>
+          <label>Pirolisis residu<input name="mitigationPyrolysisTonnes" type="number" min="0" step="0.01" value="0" required><small>ton/tahun · emisi belum dimodelkan</small></label>
+          <label>Residu akhir ke TPA<input name="mitigationLandfillTonnes" type="number" min="0" step="0.01" value="0" required><small>ton/tahun · dihitung dalam emisi model</small></label></div>
+        <p class="subtle-note">Model sumber menetapkan pembakaran terbuka pada skenario mitigasi sebesar 0. Alokasi bank sampah dan pirolisis dicatat, tetapi tidak menghasilkan kredit penghindaran emisi pada model saat ini.</p>
+      </section>
+      <div id="formError" class="form-error" role="alert" hidden></div><button id="calculateButton" class="button primary wide" type="submit">Hitung dan simpan hasil →</button>
+      <p class="privacy-note">Data tersimpan pada spreadsheet privat yang dikelola administrator. Pengguna publik hanya menerima hasil pengirimannya sendiri.</p>
+    </form>
+    <aside class="side-column"><section class="panel side-card"><p class="eyebrow">HASIL YANG DAPAT DITELUSURI</p><h2>Ringkasan perhitungan</h2><ul class="feature-list"><li>Emisi baseline dan mitigasi</li><li>Potensi penurunan emisi</li><li>Rincian per komponen</li><li>Rumus, parameter, dan referensi</li><li>Laporan yang dapat diunduh</li></ul></section>
+      <section class="panel side-card"><p class="eyebrow">BATASAN MODEL</p><p class="side-copy">Hasil merupakan estimasi berdasarkan parameter dan rumus yang tercatat pada skrip sumber. Beberapa asumsi dan faktor emisi belum memiliki sitasi bibliografis lengkap.</p><a class="text-link" href="#references">Lihat status referensi →</a></section></aside>
+  </section>
+  <section id="results" class="results-section" hidden aria-live="polite"><div class="result-heading"><div><p class="eyebrow">HASIL PERHITUNGAN</p><h2>Ringkasan skenario</h2><p id="resultLocation" class="result-location"></p></div><div class="reference-id"><small>Nomor referensi</small><strong id="referenceId"></strong></div></div>
+    <div class="metric-grid"><article class="metric-card"><span>Emisi baseline</span><strong id="baselineValue">—</strong><small>ton CO₂e/tahun</small></article><article class="metric-card"><span>Emisi mitigasi</span><strong id="mitigationValue">—</strong><small>ton CO₂e/tahun</small></article><article class="metric-card highlight"><span>Perubahan emisi</span><strong id="reductionValue">—</strong><small id="reductionPercent">—</small></article></div>
+    <div class="panel result-detail"><div class="panel-heading"><h3>Kontribusi emisi per komponen</h3><button id="downloadButton" class="button secondary" type="button">Unduh laporan ↓</button></div><div class="table-scroll"><table><thead><tr><th>Komponen</th><th>Baseline</th><th>Mitigasi</th><th>Satuan</th></tr></thead><tbody id="componentRows"></tbody></table></div><div id="warnings" class="warnings"></div></div>
+  </section>
+  <section id="methodology" class="method-section"><div class="section-heading"><p class="eyebrow">TRANSPARANSI PERHITUNGAN</p><h2>Bagaimana hasil dihitung?</h2><p>Persamaan merepresentasikan implementasi model yang tersedia. Parameter dan metodologi sumber tidak diubah.</p></div>
+    <div class="method-grid">
+      <article class="method-card"><span>01</span><h3>Penduduk efektif</h3><div class="equation">P efektif = P total × (1 − 0,30)</div><p>Total penduduk adalah jumlah RW 01–06. Pengurangan 30% merupakan asumsi skrip sumber.</p></article>
+      <article class="method-card"><span>02</span><h3>Timbulan tahunan</h3><div class="equation">W = P efektif × 0,19</div><p>W dalam ton/tahun; 0,19 ton/kapita/tahun dikutip dari BPS (2006) pada skrip sumber.</p></article>
+      <article class="method-card"><span>03</span><h3>TPA — Tier 1</h3><div class="equation">CH₄ = (W × DOC × DOCf × MCF × F × 16/12 − R) × (1 − OX)</div><p>W dikonversi ke Gg. CO₂e = CH₄ × GWP CH₄ (21). Skrip menyebut IPCC 2006 Volume 5.</p></article>
+      <article class="method-card"><span>04</span><h3>Pengomposan</h3><div class="equation">CO₂e = (CH₄ × 21) + (N₂O × 310)</div><p>CH₄ = kg sampah × 4 g/kg; N₂O = kg sampah × 0,3 g/kg; gas dikonversi ke Gg.</p></article>
+      <article class="method-card"><span>05</span><h3>Pembakaran terbuka</h3><div class="equation">CO₂e = (W bakar / 328,78) × 0,48766485</div><p>Hasil persamaan dalam Gg CO₂e. Rasio disalin dari skrip; asal-usulnya belum terdokumentasi.</p></article>
+      <article class="method-card"><span>06</span><h3>Penurunan emisi</h3><div class="equation">Reduksi = Emisi baseline − Emisi mitigasi</div><p>Persentase = reduksi ÷ baseline × 100%. Nilai negatif berarti emisi mitigasi lebih tinggi.</p></article>
+    </div><p class="method-footnote">DOC: Degradable Organic Carbon; DOCf: fraction of DOC dissimilated; MCF: Methane Correction Factor; F: fraction of methane in landfill gas; R: recovered methane; OX: oxidation factor; Gg: gigagram.</p>
+  </section>
+  <section id="references" class="references-section"><div class="section-heading"><p class="eyebrow">SUMBER DAN KUALITAS RUJUKAN</p><h2>Referensi parameter</h2><p>Informasi berasal dari komentar, catatan, dan konstanta dalam skrip sumber. Detail yang tidak tersedia sengaja tidak direka.</p></div><div id="referenceList" class="reference-list"><p>Memuat referensi…</p></div><div class="legend"><span class="status verified">Terverifikasi</span><span>Detail sumber lengkap</span><span class="status incomplete">Belum lengkap</span><span>Sumber disebut, detail bibliografi belum lengkap</span><span class="status validation">Perlu validasi</span><span>Dasar parameter belum teridentifikasi</span></div></section>
+</main>
+<footer class="footer"><div class="shell">Kalkulator Mitigasi Sampah · Estimasi model, bukan inventarisasi emisi terverifikasi.</div></footer>
+<script>
+var latestSubmission=null;
+var nf=new Intl.NumberFormat('id-ID',{maximumFractionDigits:2});
+var pf=new Intl.NumberFormat('id-ID',{maximumFractionDigits:1});
+function fmt(v){return nf.format(Number(v)||0);}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function renderReferences(refs){
+  document.getElementById('referenceList').innerHTML=refs.map(function(r){
+    var cls=r.status==='verified'?'verified':(r.status==='incomplete'?'incomplete':'validation');
+    var label=r.status==='verified'?'Terverifikasi':(r.status==='incomplete'?'Belum lengkap':'Perlu validasi');
+    var link=r.url?'<a class="text-link" href="'+esc(r.url)+'" target="_blank" rel="noopener">Buka sumber ↗</a>':'';
+    return '<article class="reference-card"><div class="reference-top"><span>'+esc(r.id)+'</span><span class="status '+cls+'">'+label+'</span></div><h3>'+esc(r.title)+'</h3><p>'+esc(r.citation)+'</p><dl><div><dt>Parameter</dt><dd>'+esc(r.parameter)+'</dd></div><div><dt>Nilai</dt><dd>'+esc(r.value)+' '+esc(r.unit)+'</dd></div><div><dt>Lokasi sumber</dt><dd>'+esc(r.location)+'</dd></div></dl><p class="reference-note">'+esc(r.note)+'</p>'+link+'</article>';
+  }).join('');
+}
+function payloadFrom(form){
+  var d=new FormData(form),p={};
+  d.forEach(function(v,k){p[k]=['village','subdistrict','regency'].indexOf(k)>=0?v:Number(v);});
+  return p;
+}
+document.getElementById('calculatorForm').addEventListener('submit',function(e){
+  e.preventDefault();var form=e.currentTarget,button=document.getElementById('calculateButton'),error=document.getElementById('formError');
+  error.hidden=true;if(!form.reportValidity())return;
+  button.disabled=true;button.textContent='Menghitung dan menyimpan…';
+  google.script.run.withSuccessHandler(function(res){
+    latestSubmission=res;renderResults(res);button.disabled=false;button.textContent='Hitung dan simpan hasil →';
+    document.getElementById('results').hidden=false;document.getElementById('results').scrollIntoView({behavior:'smooth'});
+  }).withFailureHandler(function(err){
+    error.textContent=err&&err.message?err.message:'Terjadi kesalahan. Silakan coba lagi.';error.hidden=false;
+    button.disabled=false;button.textContent='Hitung dan simpan hasil →';
+  }).submitCalculation(payloadFrom(form));
+});
+function renderResults(res){
+  var r=res.result,e=r.emissions;
+  document.getElementById('resultLocation').textContent=[r.location.village,r.location.subdistrict,r.location.regency].join(', ');
+  document.getElementById('referenceId').textContent=res.referenceId;
+  document.getElementById('baselineValue').textContent=fmt(e.baseline.totalTonnesCO2e);
+  document.getElementById('mitigationValue').textContent=fmt(e.mitigation.totalTonnesCO2e);
+  document.getElementById('reductionValue').textContent=fmt(e.reductionTonnesCO2e);
+  document.getElementById('reductionPercent').textContent=pf.format(e.reductionPercent)+'% dari baseline';
+  var rows=[['TPA / pembuangan tidak terkelola',e.baseline.landfillTonnesCO2e,e.mitigation.landfillTonnesCO2e],
+    ['Pembakaran terbuka',e.baseline.openBurningTonnesCO2e,e.mitigation.openBurningTonnesCO2e],
+    ['Pengomposan',e.baseline.compostTonnesCO2e,e.mitigation.compostTonnesCO2e],
+    ['Bank sampah 3R (belum dimodelkan)',0,0],['Pirolisis (belum dimodelkan)',0,0],
+    ['TOTAL',e.baseline.totalTonnesCO2e,e.mitigation.totalTonnesCO2e]];
+  document.getElementById('componentRows').innerHTML=rows.map(function(x,i){return '<tr class="'+(i===5?'total-row':'')+'"><td>'+esc(x[0])+'</td><td>'+fmt(x[1])+'</td><td>'+fmt(x[2])+'</td><td>ton CO₂e/tahun</td></tr>';}).join('');
+  document.getElementById('warnings').innerHTML='<strong>Catatan interpretasi</strong><ul>'+r.warnings.map(function(w){return '<li>'+esc(w)+'</li>';}).join('')+'</ul>';
+}
+function reportHtml(res){
+  var r=res.result,e=r.emissions,refs=res.references||[];
+  var rows=[['TPA / pembuangan tidak terkelola',e.baseline.landfillTonnesCO2e,e.mitigation.landfillTonnesCO2e],
+    ['Pembakaran terbuka',e.baseline.openBurningTonnesCO2e,e.mitigation.openBurningTonnesCO2e],
+    ['Pengomposan',e.baseline.compostTonnesCO2e,e.mitigation.compostTonnesCO2e],
+    ['Bank sampah 3R (belum dimodelkan)',0,0],['Pirolisis (belum dimodelkan)',0,0]];
+  var body=rows.map(function(x){return '<tr><td>'+esc(x[0])+'</td><td>'+fmt(x[1])+'</td><td>'+fmt(x[2])+'</td></tr>';}).join('');
+  var refList=refs.map(function(x){return '<li><b>'+esc(x.title)+'</b><br>'+esc(x.citation)+'<br>Parameter: '+esc(x.parameter)+'; nilai: '+esc(x.value)+' '+esc(x.unit)+'; lokasi: '+esc(x.location)+'; status: '+esc(x.status)+'</li>';}).join('');
+  var notes=r.warnings.map(function(x){return '<li>'+esc(x)+'</li>';}).join('');
+  return '<!doctype html><html lang="id"><meta charset="utf-8"><title>Laporan '+esc(res.referenceId)+'</title><style>body{font:14px Arial,sans-serif;max-width:900px;margin:36px auto;padding:0 20px;color:#20352c;line-height:1.55}h1,h2{color:#1d5945}table{width:100%;border-collapse:collapse;margin:16px 0}td,th{padding:9px;border:1px solid #dce5de;text-align:left}.metrics{display:flex;gap:24px;flex-wrap:wrap}.metric{padding:12px;border:1px solid #dce5de;border-radius:8px}</style><body><h1>Laporan Estimasi Emisi dan Potensi Mitigasi</h1><p><b>Nomor referensi:</b> '+esc(res.referenceId)+'<br><b>Lokasi:</b> '+esc([r.location.village,r.location.subdistrict,r.location.regency].join(', '))+'<br><b>Waktu:</b> '+esc(new Date(res.submittedAt).toLocaleString('id-ID'))+'</p><div class="metrics"><div class="metric">Baseline<br><b>'+fmt(e.baseline.totalTonnesCO2e)+' ton CO₂e/tahun</b></div><div class="metric">Mitigasi<br><b>'+fmt(e.mitigation.totalTonnesCO2e)+' ton CO₂e/tahun</b></div><div class="metric">Perubahan<br><b>'+fmt(e.reductionTonnesCO2e)+' ton CO₂e/tahun ('+pf.format(e.reductionPercent)+'%)</b></div></div><h2>Rincian emisi</h2><table><tr><th>Komponen</th><th>Baseline</th><th>Mitigasi</th></tr>'+body+'<tr><th>Total</th><th>'+fmt(e.baseline.totalTonnesCO2e)+'</th><th>'+fmt(e.mitigation.totalTonnesCO2e)+'</th></tr></table><h2>Data aktivitas</h2><p>Populasi tercatat: '+fmt(r.population.recorded)+' jiwa; populasi efektif: '+fmt(r.population.effective)+' jiwa; estimasi timbulan: '+fmt(r.waste.annualEstimatedTonnes)+' ton/tahun.</p><h2>Rumus</h2><ol><li>Penduduk efektif = total penduduk × (1 − 0,30).</li><li>Timbulan tahunan = penduduk efektif × 0,19 ton/kapita/tahun.</li><li>TPA: CH₄ = (W × DOC × DOCf × MCF × F × 16/12 − R) × (1 − OX); CO₂e = CH₄ × 21.</li><li>Kompos: CH₄ = kg sampah × 4 g/kg; N₂O = kg sampah × 0,3 g/kg; CO₂e = CH₄ × 21 + N₂O × 310.</li><li>Pembakaran: CO₂e (Gg) = (ton dibakar / 328,78) × 0,48766485.</li><li>Reduksi = emisi baseline − emisi mitigasi.</li></ol><h2>Referensi dan status</h2><ol>'+refList+'</ol><h2>Catatan</h2><ul>'+notes+'</ul><p><small>Parameter berstatus belum lengkap/perlu validasi bukan sitasi ilmiah yang telah diverifikasi. Gunakan sebagai estimasi model, bukan inventarisasi emisi terverifikasi.</small></p></body></html>';
+}
+document.getElementById('downloadButton').addEventListener('click',function(){
+  if(!latestSubmission)return;var blob=new Blob([reportHtml(latestSubmission)],{type:'text/html;charset=utf-8'});
+  var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;
+  a.download='Laporan-Mitigasi-Sampah-'+latestSubmission.referenceId+'.html';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+});
+google.script.run.withSuccessHandler(function(c){
+  renderReferences(c.references||[]);if(!c.dataStoreReady)document.getElementById('setupNotice').hidden=false;
+}).withFailureHandler(function(){document.getElementById('referenceList').textContent='Daftar referensi tidak dapat dimuat.';}).getPublicConfig();
+</script>
+</body></html>
