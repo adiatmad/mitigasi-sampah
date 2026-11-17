@@ -43,7 +43,7 @@ README.md
 
 - This repository is the source of truth for application code and project specifications.
 - The operational Google Spreadsheet must remain private. Do not commit its ID, credentials, access tokens, or private user submissions.
-- **Do not upload the original Excel workbook to this public repository yet.** A public repository makes uploaded files publicly accessible, and the repository's MIT license would apply to repository contents. First confirm that the workbook contains no personal data, confidential records, restricted third-party material, or content you do not intend to publish. Prefer sharing the workbook through a private channel for the initial audit.
+- **Do not upload the original Excel workbook to this public repository yet.** A public repository makes uploaded files publicly accessible, and the repository's GPL-3.0-or-later license applies to the project's covered source and documentation. First confirm that the workbook contains no personal data, confidential records, restricted third-party material, or content you do not intend to publish. Prefer sharing the workbook through a private channel for the initial audit.
 - Never place real `.clasp.json` files or secrets in Git. Use `.clasp.json.example` as a template only.
 
 ## Development status
@@ -72,4 +72,6 @@ No script ID, spreadsheet ID, or deployment URL is included in this repository.
 
 ## License
 
-The application source and original project documentation are licensed under the MIT License. See [LICENSE](LICENSE). This does not grant rights to third-party material, trademarks, personal data, or content that the project owner does not own or have permission to publish.
+The GPL is a copyleft free-software license: recipients may use, study, modify, and redistribute covered works, including commercially, provided they follow its terms and preserve the same freedoms in redistributed derivative works. The license does not automatically cover third-party materials, trademarks, personal data, or content the project owner does not have rights to license.
+
+The application source and original project documentation are licensed under **GNU General Public License v3.0 or later (GPL-3.0-or-later)**. See [LICENSE](LICENSE). This does not grant rights to third-party material, trademarks, personal data, or content that the project owner does not own or have permission to publish.
