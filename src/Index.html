@@ -120,7 +120,7 @@ document.getElementById('downloadButton').addEventListener('click',function(){
   a.download='Laporan-Mitigasi-Sampah-'+latestSubmission.referenceId+'.html';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 });
 google.script.run.withSuccessHandler(function(c){
-  renderReferences(c.references||[]);if(!c.dataStoreReady)document.getElementById('setupNotice').hidden=false;
+  renderReferences(c.references||[]);document.querySelector('[name="wasteGenerationRate"]').value=c.defaultWasteGeneration;if(!c.dataStoreReady)document.getElementById('setupNotice').hidden=false;
 }).withFailureHandler(function(){document.getElementById('referenceList').textContent='Daftar referensi tidak dapat dimuat.';}).getPublicConfig();
 </script>
 </body></html>
