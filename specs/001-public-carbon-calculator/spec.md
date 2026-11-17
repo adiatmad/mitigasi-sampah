@@ -1,67 +1,43 @@
 # Feature Specification: Public Carbon Calculator
 
-**Status:** Draft — pending source workbook audit and owner approval  
-**Feature branch:** `001-public-carbon-calculator`
+**Status:** Implementation draft — owner review required before production deployment.
 
-## User problem
-A user needs to calculate a waste-management carbon result through a simple public web interface without accessing the underlying spreadsheet or requiring a Google account.
-
-## Product decisions already confirmed
-- Public web application replaces the existing spreadsheet UI.
-- End users do not need Google accounts.
-- The Google Sheets datastore remains private.
-- Submission records and calculation-detail records are stored separately.
-- Results are displayed after a successful submission.
-- The user receives a downloadable report and unique submission reference ID.
-- Existing formulas and assumptions are preserved; concerns are documented separately.
-
-## In scope
-- Public input interface based on the existing workbook's actual input model.
-- Server-side validation and calculation execution.
-- Private central persistence.
+## Confirmed product decisions
+- Public web application; end users do not need a Google account.
+- Private Google Sheets datastore.
 - Separate submission and calculation-detail records linked by a unique reference ID.
-- Per-submission result response.
-- Downloadable report.
-- Clear validation, processing, and failure states.
-
-## Out of scope unless separately approved
-- User accounts or authentication for end users.
-- Public browsing of submissions or a public results dashboard.
-- Email delivery, payment, multi-tenant administration, or analytics dashboards.
-- Changes to carbon methodology or emission factors.
-- Production deployment before owner approval.
+- Server-side calculation and validation; no browser-supplied totals are trusted.
+- Results shown after successful persistence.
+- Downloadable HTML report containing result, formulas, parameter values, and source-status register.
+- Preserve the existing calculation values and equations; document concerns separately.
 
 ## Functional requirements
-Requirements below are intentionally provisional where workbook behavior is not yet known.
-
-- **FR-001:** The application MUST allow an end user to complete the approved calculator input flow without signing in to Google.
-- **FR-002:** The server MUST validate all submitted values against rules derived from the audited workbook and approved specification.
-- **FR-003:** The application MUST preserve existing calculation formulas and assumptions.
-- **FR-004:** The server MUST calculate results; it MUST NOT trust client-supplied totals.
-- **FR-005:** Each accepted submission MUST receive a unique, non-guessable reference identifier.
-- **FR-006:** Submission metadata MUST be stored separately from calculation-detail rows and linked by the reference identifier.
-- **FR-007:** A successful submission MUST return only that submission's result and reference identifier.
-- **FR-008:** The user MUST be able to download a report for their completed submission.
-- **FR-009:** The application MUST prevent public users from reading or enumerating other submissions.
-- **FR-010:** Concurrent submissions MUST NOT overwrite or mix one another's data.
-- **FR-011:** Failed persistence MUST be communicated as failure, not success.
-- **FR-012:** The interface MUST provide understandable validation and error feedback.
-
-## Open questions — resolve after workbook audit
-- Exact input fields, steps, labels, units, ranges, defaults, and required/optional status.
-- Exact formulas, intermediate values, output metrics, and rounding behavior.
-- Submission metadata fields and detail-row schema.
-- Report format and exact report contents.
-- Retention, deletion, and operational access policy.
-- Abuse controls and any deployment quotas or constraints.
-- Whether any personal information is genuinely necessary.
+- **FR-001:** Collect location, six RW population values, waste-generation rate, baseline open-burning and landfill tonnage, and mitigation composting, bank sampah, pyrolysis, and landfill tonnage.
+- **FR-002:** Validate required location text and non-negative finite numeric inputs on the server.
+- **FR-003:** Calculate results on the server using the existing model values and equations.
+- **FR-004:** Keep 30% population adjustment, 0.19 ton/capita/year default, landfill constants, compost factors, GWP values, and open-burning ratio unchanged.
+- **FR-005:** Do not infer emission credits for bank sampah or pyrolysis; disclose that these categories are not modeled in the source calculation.
+- **FR-006:** Create a unique submission reference ID and persist summary and calculation-detail records separately.
+- **FR-007:** Serialize writes with a script lock and report persistence failures as failures.
+- **FR-008:** Return only the current submission's results; do not expose a public submission lookup endpoint.
+- **FR-009:** Display the component breakdown, scenario comparison, calculation equations, parameters, citations, and reference quality status.
+- **FR-010:** Provide a downloadable report with the submission reference and all available methodology/reference information.
+- **FR-011:** Show informational warnings when scenario allocations exceed or fall short of estimated annual waste. Warnings do not alter the source calculation.
+- **FR-012:** Mark missing bibliographic evidence as incomplete or needing validation; never fabricate page numbers, publication details, or URLs.
 
 ## Acceptance criteria
-The final, testable acceptance criteria will be completed after the workbook audit. At minimum, release requires:
-- Characterization tests demonstrating parity with approved workbook cases.
-- Invalid and boundary input tests.
-- Isolation tests showing one submission cannot overwrite or retrieve another.
-- Concurrent-write and duplicate-request tests.
-- Report content and download tests.
-- Privacy review confirming the spreadsheet and credentials are not exposed.
-- Owner approval of the final specification and deployment configuration.
+- A valid submission returns a unique reference ID and server-calculated result.
+- Negative, non-finite, missing numeric values and blank/overlong location fields are rejected server-side.
+- Known-answer tests cover population adjustment, annual waste, landfill, compost, open burning, totals, and negative reduction cases.
+- Submissions and detail rows are linked by the same reference ID and do not overwrite one another under concurrent writes.
+- A failed write is not presented as a successful submission.
+- The report includes the input context, results, formulas, all parameter values, reference status, and known limitations.
+- The interface clearly states that bank sampah and pyrolysis are not modeled for emissions/credits.
+- No spreadsheet ID, private submission data, or credential is returned to the browser.
+- Owner reviews the unresolved source citations and datastore setup before production deployment.
+
+## Explicit non-goals
+- No recalibration or methodological correction.
+- No external research to complete missing citations.
+- No public browsing of submissions, accounts, email delivery, or analytics dashboard.
+- No production deployment or live data migration in this change.
