@@ -106,9 +106,23 @@ function buildDetailRows_(ref,input,result) {
     rows.push([ref,group,item,value,unit,formula,source||'',match?match.status:'not applicable']);
   }
   Object.keys(input).forEach(function(k) {
-    add('input',k,input[k],k.indexOf('Tonnes')>=0?'ton/tahun':(k.indexOf('rw')===0?'jiwa':''),
-      'Input pengguna',k==='wasteGenerationRate'?'REF-BPS-2006':'');
+    var unit=k.indexOf('Tonnes')>=0?'ton/tahun':(k.indexOf('rw')===0?'jiwa':(k==='wasteGenerationRate'?'ton/kapita/tahun':''));
+    add('input',k,input[k],unit,'Input pengguna',k==='wasteGenerationRate'?'REF-BPS-2006':'');
   });
+  add('parameter','Penyesuaian populasi',0.30,'%','Populasi efektif = populasi tercatat × (1 − 0,30)','REF-MIGRATION');
+  add('parameter','DOC',0.182,'fraction','Parameter model landfill','REF-IPCC-LANDFILL');
+  add('parameter','DOCf',0.5,'fraction','Parameter model landfill','REF-IPCC-LANDFILL');
+  add('parameter','MCF',0.8,'fraction','Parameter model landfill','REF-IPCC-LANDFILL');
+  add('parameter','F',0.5,'fraction','Parameter model landfill','REF-IPCC-LANDFILL');
+  add('parameter','R',0,'Gg CH4','Parameter model landfill','REF-IPCC-LANDFILL');
+  add('parameter','OX',0,'fraction','Parameter model landfill','REF-IPCC-LANDFILL');
+  add('parameter','Rasio massa molekul 16/12',16/12,'ratio','Konversi karbon menjadi metana','REF-IPCC-LANDFILL');
+  add('parameter','GWP CH4',21,'kg CO2e/kg CH4','Nilai GWP dalam skrip sumber','REF-GWP');
+  add('parameter','GWP N2O',310,'kg CO2e/kg N2O','Nilai GWP dalam skrip sumber','REF-GWP');
+  add('parameter','Faktor CH4 kompos',4.0,'g CH4/kg sampah basah','Faktor emisi kompos','REF-IPCC-COMPOST');
+  add('parameter','Faktor N2O kompos',0.3,'g N2O/kg sampah basah','Faktor emisi kompos','REF-IPCC-COMPOST');
+  add('parameter','Jumlah sampah referensi pembakaran',328.78,'ton','Rasio pembakaran yang tertanam di skrip','REF-OPEN-BURNING');
+  add('parameter','Emisi referensi pembakaran',0.48766485,'Gg CO2e','Rasio pembakaran yang tertanam di skrip','REF-OPEN-BURNING');
   add('population','Populasi tercatat',result.population.recorded,'jiwa','Jumlah RW 01–06','');
   add('population','Populasi efektif',result.population.effective,'jiwa','Populasi tercatat × (1 − 0,30)','REF-MIGRATION');
   add('waste','Estimasi timbulan tahunan',result.waste.annualEstimatedTonnes,'ton/tahun','Populasi efektif × laju timbulan','REF-BPS-2006');
