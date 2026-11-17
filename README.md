@@ -1,77 +1,53 @@
 # Mitigasi Sampah
 
-A public-facing carbon calculator for waste-management scenarios, built with Google Apps Script and a private Google Sheets data store.
+A public-facing waste-management emissions calculator built with Google Apps Script and a private Google Sheets datastore.
 
-> **Project status: preparation only.** The existing workbook and calculation logic have not yet been audited. No production calculations or deployment configuration are implemented in this repository.
+## What is implemented
+- Public Indonesian-language calculator interface.
+- Server-side input validation and calculation.
+- Private submission and calculation-detail sheets.
+- Unique submission reference IDs.
+- Result breakdown and downloadable HTML report.
+- Visible calculation equations, parameter values, source notes, and reference-quality statuses.
 
-## Product direction
+## Calculation fidelity and limitations
+The application preserves the values and formulas from the existing Apps Script model. It does not claim independent scientific validation. See [calculation model and reference register](docs/methodology-and-references.md).
 
-- Public web application; end users do not need a Google account.
-- Private, centrally managed Google Sheets database.
-- Separate sheets for submission records and calculation-detail records.
-- Results displayed to the submitting user after a successful submission.
-- Downloadable report and unique submission reference ID.
-- Existing formulas, emission factors, assumptions, and methodology must be preserved. Potential issues are documented separately and require owner approval before any methodological change.
+In particular, the source model:
+- deducts 30% of recorded population;
+- uses 0.19 ton/capita/year as the default waste-generation rate;
+- uses GWP values CH4 = 21 and N2O = 310;
+- uses an open-burning ratio whose derivation is not documented;
+- records bank sampah and pyrolysis tonnage but calculates neither their emissions nor avoided-emission credits.
 
-## Repository layout
+These are deliberately disclosed rather than silently corrected.
 
-```text
-.specify/
-  memory/constitution.md
-specs/
-  001-public-carbon-calculator/
-    spec.md
-    plan.md
-    tasks.md
-    checklists/requirements.md
-src/
-  Code.gs
-  Index.html
-  Styles.html
-  appsscript.json
-tests/
-  README.md
-.claspignore
-.clasp.json.example
-.gitignore
-AGENTS.md
-LICENSE
-README.md
+## Files
+- `src/Code.gs`: web entry point, validation, persistence and submission handling.
+- `src/Calculator.gs`: calculation model and reference register.
+- `src/Index.html`: public calculator, results, methodology and downloadable report.
+- `src/Styles.html`: responsive styles.
+- `src/appsscript.json`: Apps Script runtime and scopes.
+
+## Setup
+1. Create or open the Apps Script project you control.
+2. Copy all files from `src/` into the Apps Script project, preserving filenames (create `Calculator.gs` as a new script file).
+3. In the Apps Script editor, select and run `setupDataStore()` once. Review and authorize the requested Google Sheets access.
+4. The function creates a private spreadsheet named `Mitigasi Sampah — Private Submissions`, stores its ID in Script Properties, and returns its URL. Keep this spreadsheet private.
+5. Deploy as a web app. For the intended public workflow, set **Execute as: Me** (the owner who created the private datastore) and **Who has access: Anyone**, if that option is available for your Google Workspace/account. Public users should not receive direct access to the spreadsheet.
+6. Test one submission and inspect the private `Submissions` and `CalculationDetails` sheets before sharing the URL.
+7. Treat the first deployment as a restricted test. Anonymous rate limiting/CAPTCHA, retention policy, and operational monitoring are not implemented; do not publish widely until you have decided how to manage spam, quota consumption, and stored submission data.
+
+The app does not auto-create the datastore during a public request. If setup has not been run, submissions fail with an explicit setup message.
+
+## Verification
+Run the local calculation tests with Node.js:
+
+```sh
+node --test tests/calculator.test.js
 ```
 
-## Source of truth and data safety
+The test suite is a deterministic unit test of the pure calculation model. It does not simulate Google Apps Script services, deployment permissions, or concurrent Sheets writes. Those require a test deployment in the user's Apps Script project.
 
-- This repository is the source of truth for application code and project specifications.
-- The operational Google Spreadsheet must remain private. Do not commit its ID, credentials, access tokens, or private user submissions.
-- **Do not upload the original Excel workbook to this public repository yet.** A public repository makes uploaded files publicly accessible, and the repository's GPL-3.0-or-later license applies to the project's covered source and documentation. First confirm that the workbook contains no personal data, confidential records, restricted third-party material, or content you do not intend to publish. Prefer sharing the workbook through a private channel for the initial audit.
-- Never place real `.clasp.json` files or secrets in Git. Use `.clasp.json.example` as a template only.
-
-## Development status
-
-The initial repository scaffold is documentation and empty application placeholders only. Implementation starts after the source workbook has been reviewed and the specification and acceptance criteria have been approved.
-
-Planned implementation sequence:
-
-1. Audit the workbook structure, formulas, named ranges, and dependencies.
-2. Record the existing calculation behavior as characterization cases.
-3. Finalize the feature specification, technical plan, and acceptance criteria.
-4. Implement the smallest maintainable Apps Script web application.
-5. Verify calculation parity, validation, concurrent submissions, privacy boundaries, and report generation.
-6. Deploy only after the owner has reviewed and approved the release.
-
-## Google Apps Script setup
-
-The Apps Script project source is in `src/`. When configuring `clasp`, use that directory as the project root and keep the real `.clasp.json` local and untracked.
-
-1. Install and authenticate the Google clasp CLI.
-2. Copy `.clasp.json.example` to `.clasp.json`.
-3. Replace the placeholder script ID with the Apps Script project ID you control.
-4. From the repository root, run `clasp push` only after reviewing the files and confirming the target project.
-
-No script ID, spreadsheet ID, or deployment URL is included in this repository.
-
-## License
-
-The GPL is a copyleft free-software license: recipients may use, study, modify, and redistribute covered works, including commercially, provided they follow its terms and preserve the same freedoms in redistributed derivative works. The license does not automatically cover third-party materials, trademarks, personal data, or content the project owner does not have rights to license.
-
-The application source and original project documentation are licensed under **GNU General Public License v3.0 or later (GPL-3.0-or-later)**. See [LICENSE](LICENSE). This does not grant rights to third-party material, trademarks, personal data, or content that the project owner does not own or have permission to publish.
+## Safety
+Never commit real `.clasp.json` credentials, spreadsheet IDs, private submissions, or confidential data. Do not deploy or replace a live project until the owner has reviewed the files and tested a deployment.
