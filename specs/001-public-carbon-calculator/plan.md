@@ -1,40 +1,31 @@
 # Implementation Plan: Public Carbon Calculator
 
-**Status:** Draft — do not implement production behavior until workbook audit and specification approval.
+**Status:** Implementation draft complete; test-deployment verification and owner review remain.
 
-## Current known constraints
-- Google Apps Script web app.
-- Private Google Sheets datastore.
-- Public anonymous end-user access.
-- Submission and calculation details stored separately.
-- Existing workbook methodology must remain unchanged.
-- Repository code is synchronized to Apps Script using clasp; real project configuration remains local.
+## Architecture
+1. Browser: responsive Indonesian-language form, result display, method/reference register, and downloadable HTML report.
+2. Apps Script server: validates submitted fields, calculates results, creates a unique reference, and persists submission plus detail rows.
+3. Private Google Sheets: `Submissions` and `CalculationDetails`, initialized by administrator with `setupDataStore()`.
+4. Calculation module: pure functions in `Calculator.gs`, independent of spreadsheet state.
+5. Concurrency: script lock serializes paired writes; best-effort rollback is attempted if persistence fails.
 
-## Proposed architecture (subject to workbook audit)
-1. **Browser:** HTML/CSS interface. Collects inputs, performs only usability-level validation, submits input payload, and renders the response.
-2. **Apps Script server:** Validates payload, runs the preserved calculation logic, creates the submission reference, persists records, and prepares report data.
-3. **Private Google Sheets:** One submission-level sheet and one calculation-detail sheet, with a stable reference ID relationship.
-4. **Report delivery:** Generate a report from server-verified result data and return a safe download mechanism. Exact format remains open pending owner confirmation and platform constraints.
+## Preserved calculation behavior
+Values and equations are transcribed from the existing source Apps Script working material:
+- 30% population adjustment.
+- 0.19 ton/capita/year waste-generation default.
+- Landfill constants DOC 0.182, DOCf 0.5, MCF 0.8, F 0.5, R 0, OX 0, and 16/12 conversion.
+- GWP CO2 1, CH4 21, N2O 310.
+- Compost factors 4.0 g CH4/kg and 0.3 g N2O/kg wet waste.
+- Open-burning ratio 328.78 tonnes to 0.48766485 Gg CO2e.
+- Baseline compost and mitigation open burning remain zero; bank sampah and pyrolysis emissions/credits remain zero as in the source model.
 
-## Design constraints
-- Do not expose spreadsheet IDs, credentials, or raw sheet data to the browser.
-- Do not use shared worksheet cells as mutable per-user calculation state.
-- Do not trust browser-supplied calculated outputs.
-- Use locking/transaction-like sequencing for related writes; define recovery behavior for partial failure.
-- Keep server functions small and cohesive; avoid unnecessary frameworks.
-- Preserve formula behavior and prove parity with characterization tests.
+See `docs/methodology-and-references.md` for equations, attribution, and limitations.
 
-## Planned phases
-1. **Discovery:** inspect workbook sheets, formulas, named ranges, validations, hidden content, and existing Apps Script behavior.
-2. **Behavior baseline:** map input/output contracts and create representative known-answer cases.
-3. **Specification:** finalize fields, validation, data schema, report, privacy, failure, and acceptance criteria.
-4. **Implementation:** implement server and browser layers with focused tests.
-5. **Verification:** parity, boundary cases, concurrency, duplicate handling, privacy, and report tests.
-6. **Release preparation:** configuration guide, deployment checklist, owner review, and explicit deployment approval.
+## Verification still required in Apps Script
+- Run `setupDataStore()` and inspect the private spreadsheet.
+- Test a submission using a test deployment.
+- Verify web-app execution identity and public access settings.
+- Verify paired writes and report download in the real Apps Script runtime.
+- Owner review of incomplete citations and assumptions before production release.
 
-## Risks to resolve
-- Apps Script execution quotas and web-app deployment identity/access settings.
-- Anonymous endpoint abuse and duplicate submissions.
-- Partial failure between writes to separate sheets.
-- Report size, format, and download delivery constraints.
-- Workbook formulas or macros that do not translate directly to Apps Script/Sheets.
+No deployment or production data change is included in this branch.
