@@ -13,7 +13,7 @@ function doGet() {
 }
 function include(filename) { return HtmlService.createHtmlOutputFromFile(filename).getContent(); }
 function getPublicConfig() {
-  return {dataStoreReady:Boolean(PropertiesService.getScriptProperties().getProperty(DATA_STORE_PROPERTY)),references:getModelReferences()};
+  return {dataStoreReady:Boolean(PropertiesService.getScriptProperties().getProperty(DATA_STORE_PROPERTY)),defaultWasteGeneration:MODEL.wasteGeneration,references:getModelReferences()};
 }
 
 /** Run once manually from the Apps Script editor. Creates a private datastore. */
